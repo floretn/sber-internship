@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="log.pattern.business"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %msg%n" />
+
+    <appender name="STDOUT"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log.pattern.business}</pattern>
+        </encoder>
+
+<!--        <filter class="org.sberinsur.tm.config.logback.filters.BusinessLoggerFilter"/>-->
+    </appender>
+
+    <appender name="BUSINESS"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>test_logs/business_logs/business_log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <maxFileSize>100MB</maxFileSize>
+            <totalSizeCap>30GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>${log.pattern.business}</pattern>
+        </encoder>
+
+        <filter class="org.sberinsur.tm.config.logback.filters.BusinessLoggerFilter"/>
+
+    </appender>
+
+    <appender name="TECHNICAL"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>test_logs/technical_logs/technical_log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
+            <maxFileSize>1GB</maxFileSize>
+            <totalSizeCap>30GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{100} - %msg%n</pattern>
+        </encoder>
+
+        <filter class="org.sberinsur.tm.config.logback.filters.TechnicalLoggerFilter"/>
+
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <logger name="org.sberinsur.tm" level="INFO">
+        <appender-ref ref="BUSINESS"/>
+    </logger>
+
+</configuration>

@@ -1,0 +1,124 @@
+version: "3.3"
+
+services:
+  eureka-server:
+    build: eureka-server
+    ports:
+      - 8761:8761
+    healthcheck:
+      test: "curl --fail --silent localhost:8761 exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  vault:
+    build: vault
+    container_name: vault
+    ports:
+      - "8200:8200"
+    restart: always
+    volumes:
+      - ./vault:/vault
+      - ./vault/vault-conf/config:/config
+      - ./vault/vault-conf/policies:/policies
+      - ./vault/vault-conf/_data:/_data
+      - ./vault/vault-conf/data:/data
+      - ./vault/wait-for.sh:/vault/wait-for.sh
+      - ./vault/setup.sh:/vault/setup.sh
+    env_file:
+      - ./.env
+
+  vault-unsealer:
+    image: vault:1.9.1
+    depends_on:
+      - "vault"
+    volumes_from:
+      - vault
+    ports:
+      - "8202:8202"
+    environment:
+      - ./.env
+    command: sh -c '/vault/wait-for.sh vault:8200 -- /vault/setup.sh'
+
+  tm-cleaner-ms:
+    build: tm-cleaner-ms
+    ports:
+      - 8082:8082
+    depends_on:
+      - "tm-dao-ms"
+    volumes:
+    - /var/transfer-manager/logs/tm-cleaner-ms:/test_logs
+    - /var/transfer-manager/Folder:/var/transfer-manager/Folder
+
+  tm-waiter-ms:
+    build: tm-waiter-ms
+    ports:
+      - 8086:8086
+    depends_on:
+      - "tm-dao-ms"
+    volumes:
+    - /var/transfer-manager/logs/tm-waiter-ms:/test_logs
+    - /var/transfer-manager/Folder:/var/transfer-manager/Folder
+
+  tm-dao-ms:
+    build: tm-dao-ms
+    command: ./wait-for-postgres.sh postgres ./tm-dao-ms
+    ports:
+      - 8081:8081    
+    depends_on:
+      - "eureka-server"
+    volumes:
+      - /var/transfer-manager/logs/tm-dao-ms:/test_logs
+      - /var/transfer-manager/Folder:/var/transfer-manager/Folder
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/sbszh
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+
+  postgresql:
+    image: 'postgres:13.1-alpine'
+    environment:
+      - POSTGRES_DB=sbszh
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+    volumes:
+      - /home/dev/IdeaProjects/transfer-manager-microservices/sql-script:/docker-entrypoint-initdb.d/
+      - /var/transfer-manager/postgresql/data:/var/lib/postgresql/data
+    ports:
+      - 5444:5432
+
+  tm-processor-ms:
+    ports:
+      - 8084:8084
+    build: tm-processor-ms
+    depends_on:
+      - "tm-dao-ms"
+    volumes:
+    - /var/transfer-manager/logs/tm-processor-ms:/test_logs
+    - /var/transfer-manager/Folder:/var/transfer-manager/Folder
+
+  tm-inserter-ms:
+    build: tm-inserter-ms
+    ports:
+      - 8083:8083
+    depends_on:
+      - "tm-dao-ms"
+    volumes:
+    - /var/transfer-manager/logs/tm-inserter-ms:/test_logs
+    - /var/transfer-manager/Folder:/var/transfer-manager/Folder
+
+  tm-ui-ms:
+    build: tm-ui-ms
+    ports:
+      - 8080:8080
+    depends_on:
+      - "tm-dao-ms"  
+    volumes:
+    - /var/transfer-manager/logs/tm-ui-ms:/test_logs    
+    - /var/transfer-manager/Folder:/var/transfer-manager/Folder
+    environment:
+      - proxy=${http_proxy}
+
+volumes:
+  sql-sqript:
