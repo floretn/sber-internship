@@ -1,0 +1,16 @@
+22.12.21 - Иван - Три очереди ArrayBlQueue DelayQueue LinkedBlockingQueue
+23.12.21 - Илья - Две очереди TransferQueue BlockingDeques
+ 
+24.12.21 - Иван - PrioretyBlockingQueue SynchronausBlockinQueue
+25.12.21 - Илья - Set
+ 
+27.12.21 - floren PriorityBlockingQueue, SynhronousQueue
+28.12.21 - Илья КопиОнВрайтСет
+28.12.21 - Иван КопиОнВрайтЭррэйЛист
+ 
+11.01.22 - Илья? - Predicate<T> Consumer<T> Function<T,R> Supplier<T>
+12.01.22 - Иван? - тоже самое но Би
+-- Общий план на стримы:
+Типы. Основные назначения типов. Далее смотрим каждый. Разложить функционал по типам операций(картиночка). Разница между параллельнымии и последовательныи стримами(примеры). lazy evaluation(примеры). Разделить методы на "сортированные", stateful, "операции короткого замыкания", stateless операции (примеры), ... . 
+20.01.22 - Илья - Операции Reduction.
+
